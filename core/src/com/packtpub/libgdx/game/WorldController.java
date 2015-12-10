@@ -1,5 +1,9 @@
 package com.packtpub.libgdx.game;
 
+import com.badlogic.gdx.Application;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -9,7 +13,7 @@ import com.packtpub.libgdx.canyonbunny.CanyonBunnyMain;
 /**
  * Created by anuchapa on 9/12/2015.
  */
-public class WorldController {
+public class WorldController extends InputAdapter {
 
     public static final String TAG = CanyonBunnyMain.class.getName();
 
@@ -21,6 +25,7 @@ public class WorldController {
     }
 
     public void init() {
+        Gdx.input.setInputProcessor(this);
         initTestObjects();
     }
 
@@ -57,7 +62,26 @@ public class WorldController {
     }
 
     public void update(float deltaTime) {
+        handleDebugInput(deltaTime);
         updateTestObjects(deltaTime);
+    }
+
+    private void handleDebugInput(float deltaTime) {
+        if(Gdx.app.getType() != Application.ApplicationType.Desktop) return;
+
+        float sprMoveSpeed = 5 * deltaTime;
+
+        if(Gdx.input.isKeyPressed(Input.Keys.A)) moveSelectedSprite(-sprMoveSpeed, 0);
+
+        if(Gdx.input.isKeyPressed(Input.Keys.D)) moveSelectedSprite(sprMoveSpeed, 0);
+
+        if(Gdx.input.isKeyPressed(Input.Keys.W)) moveSelectedSprite(0, sprMoveSpeed);
+
+        if(Gdx.input.isKeyPressed(Input.Keys.S)) moveSelectedSprite(0, -sprMoveSpeed);
+    }
+
+    private void moveSelectedSprite(float x, float y) {
+        testSprites[selectedSprite].translate(x, y);
     }
 
     private void updateTestObjects(float deltaTime) {
@@ -65,5 +89,18 @@ public class WorldController {
         rotation += 90 * deltaTime;
         rotation %= 360;
         testSprites[selectedSprite].setRotation(rotation);
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+
+        if(keycode == Input.Keys.R){
+            init();
+            Gdx.app.debug(TAG, "Game world reseted");
+        } else if(keycode == Input.Keys.SPACE){
+            selectedSprite = (selectedSprite + 1) % testSprites.length;
+            Gdx.app.debug(TAG, "Sprite #" + selectedSprite + " selected");
+        }
+        return false;
     }
 }
